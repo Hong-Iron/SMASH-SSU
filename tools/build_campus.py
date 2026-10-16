@@ -116,11 +116,58 @@ for e in area:
     if not in_campus((cx, cz)): continue
     lv = num(t.get("building:levels")); h = num(t.get("height"))
     if lv is not None and lv < 1: lv = None
+    canopy = t["building"] in ("roof", "carport")
     if h is None:
-        h = (lv if lv is not None else 4) * 4.0
+        h = 4.0 if canopy else (lv if lv is not None else 4) * 4.0
     samples = [hgt(x, z) for x, z in outer] + [hgt(cx, cz)]
     buildings.append(dict(id=f"{e['type']}/{e['id']}", n=t.get("name"), campus=True, kind=t["building"], lv=lv, h=round(h, 1),
-                          g=round(sum(samples) / len(samples), 1), lo=round(min(samples), 1), o=r1(outer), ho=[r1(x) for x in holes if len(x) >= 3]))
+                          g=round(sum(samples) / len(samples), 1), lo=round(min(samples), 1), o=r1(outer), ho=[r1(x) for x in holes if len(x) >= 3],
+                          tagged=lv is not None or t.get("height") is not None))
+
+# ---- OSM often stacks a building's outline and its parts as separate buildings.
+# Coplanar roofs and walls then flicker, so merge near-duplicates and nudge the rest apart.
+def fp_area(r): return abs(sum(r[i][0] * r[(i + 1) % len(r)][1] - r[(i + 1) % len(r)][0] * r[i][1] for i in range(len(r))) / 2)
+def bbox(b):
+    xs = [p[0] for p in b["o"]]; zs = [p[1] for p in b["o"]]
+    return min(xs), max(xs), min(zs), max(zs)
+def overlap(a, b):
+    A, B = bbox(a), bbox(b)
+    x0, x1, z0, z1 = max(A[0], B[0]), min(A[1], B[1]), max(A[2], B[2]), min(A[3], B[3])
+    if x0 >= x1 or z0 >= z1: return 0.0
+    hit = sum(1 for u in range(14) for v in range(14)
+              if inside((x0 + (x1 - x0) * (u + .5) / 14, z0 + (z1 - z0) * (v + .5) / 14), a["o"])
+              and inside((x0 + (x1 - x0) * (u + .5) / 14, z0 + (z1 - z0) * (v + .5) / 14), b["o"]))
+    return (x1 - x0) * (z1 - z0) * hit / 196
+for b in buildings: b["area"] = fp_area(b["o"])
+buildings.sort(key=lambda b: -b["area"])
+merged = dropped = nudged = 0
+keep = []
+for b in buildings:
+    absorbed = False
+    for k in keep:
+        ov = overlap(k, b)
+        if ov <= 1: continue
+        frac = ov / max(1e-6, b["area"])
+        if b["kind"] in ("roof", "carport") and frac > 0.3:
+            absorbed = True; dropped += 1; break
+        if frac > 0.85 and (abs(k["h"] - b["h"]) < 1.0 or not b["tagged"]):
+            if not k["n"] and b["n"]: k["n"] = b["n"]
+            if not k["tagged"] and b["tagged"]: k["h"], k["lv"], k["tagged"] = b["h"], b["lv"], True
+            absorbed = True; merged += 1; break
+        if abs(k["h"] - b["h"]) < 0.6:
+            b["h"] = round(b["h"] + 0.6, 1); nudged += 1
+    if not absorbed:
+        if any(overlap(k, b) > 1 for k in keep):
+            # shrink a nested part slightly so its walls do not sit on the outer walls
+            cx = sum(p[0] for p in b["o"]) / len(b["o"]); cz = sum(p[1] for p in b["o"]) / len(b["o"])
+            size = max(bbox(b)[1] - bbox(b)[0], bbox(b)[3] - bbox(b)[2], 1)
+            f = max(0.9, 1 - 0.5 / size)
+            b["o"] = [[round(cx + (x - cx) * f, 1), round(cz + (z - cz) * f, 1)] for x, z in b["o"]]
+        keep.append(b)
+for b in keep:
+    b.pop("area", None); b.pop("tagged", None)
+buildings = keep
+print(f"overlaps: merged {merged}, dropped canopies {dropped}, nudged {nudged}")
 
 ROAD_KEEP = {"primary", "secondary", "tertiary", "residential", "unclassified", "service", "pedestrian", "footway", "path", "steps", "living_street", "cycleway", "track"}
 roads = []
