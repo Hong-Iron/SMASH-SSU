@@ -20,5 +20,62 @@
   "kakaoKey": "ff20552a5a51bc1fe0e0ecdecd217f35",
   "goatcounter": "https://sassafras.goatcounter.com/count",
   "supabaseUrl": "https://qohxhopinnwrzrgxrdvj.supabase.co",
-  "supabaseKey": "sb_publishable_9RcuLHwCWIpdzjqDvXMtIA_kicFhQ8g"
+  "supabaseKey": "sb_publishable_9RcuLHwCWIpdzjqDvXMtIA_kicFhQ8g",
+  "look": {
+    "한경직기념관": {
+      "style": "stone",
+      "wall": "#c4c4c6",
+      "glass": "#2e3a48",
+      "frame": "#1c2c44"
+    },
+    "형남공학관": {
+      "style": "glass",
+      "wall": "#b3b4af",
+      "glass": "#647a7e",
+      "frame": "#a9b0b3"
+    },
+    "조만식기념관": {
+      "style": "stone",
+      "wall": "#b6b4af",
+      "glass": "#4a5056",
+      "frame": "#e0e0dc"
+    },
+    "레지던스홀": {
+      "style": "dorm",
+      "wall": "#4a5d80",
+      "glass": "#2a3444",
+      "frame": "#6f7f99"
+    },
+    "신양관": {
+      "style": "stone",
+      "wall": "#d7cecb",
+      "glass": "#707b86",
+      "frame": "#a8b0b4"
+    },
+    "베어드홀": {
+      "style": "ribbon",
+      "wall": "#e2dccb",
+      "glass": "#5b6c77",
+      "frame": "#9b9488"
+    },
+    "전산관": {
+      "style": "stone",
+      "wall": "#858580",
+      "glass": "#33363a",
+      "frame": "#8a5f45"
+    },
+    "숭덕경상관": {
+      "style": "glass",
+      "wall": "#2f3238",
+      "glass": "#2b3445",
+      "frame": "#55595f"
+    },
+    "정보과학관": {
+      "style": "ribbon",
+      "wall": "#c9c2b5",
+      "glass": "#515965",
+      "frame": "#aca8a1"
+    }
+  },
+  "lookSource": "학교 공식 캠퍼스맵·건물 안내 사진과 위키미디어 공용 사진의 색만 참고. 사진 픽셀은 쓰지 않음"
 }
